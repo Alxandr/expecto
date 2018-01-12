@@ -8,7 +8,6 @@
   <ItemGroup>
     <Compile Include="Main.fs" />
     <None Include="paket.references" />
-    <PackageReference Include="FSharp.Core" Version="4.1.18" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Expecto\Expecto.fsproj" />

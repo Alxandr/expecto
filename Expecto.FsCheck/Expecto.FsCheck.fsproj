@@ -9,8 +9,6 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="FsCheck.fs" />
     <None Include="paket.references" />
-    <PackageReference Include="FSharp.Core" Version="4.1.18" />
-    <PackageReference Include="FsCheck" Version="2.10.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Expecto\Expecto.fsproj" />
