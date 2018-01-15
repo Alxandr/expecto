@@ -28,7 +28,7 @@ matrix:
 addons:
   apt:
     packages:
-    - dotnet-sharedframework-microsoft.netcore.app-1.1.7
+    - dotnet-sharedframework-microsoft.netcore.app-1.1.5
 
 env:
   global:
