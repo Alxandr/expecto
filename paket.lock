@@ -1,4 +1,4 @@
-REDIRECTS: ON
+STORAGE: NONE
 NUGET
   remote: https://api.nuget.org/v3/index.json
     Argu (3.7)

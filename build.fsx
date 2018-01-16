@@ -15,6 +15,14 @@ let iconUrl = "https://raw.githubusercontent.com/haf/expecto/master/docs/expecto
 let licenceUrl = "https://github.com/haf/expecto/blob/master/LICENSE"
 let copyright = "Copyright \169 2018"
 
+let dotnetcliVersion = DotNetCli.GetDotNetSDKVersionFromGlobalJson()
+let mutable dotnetExePath = "dotnet"
+
+Target "InstallDotNetCore" (fun _ ->
+    dotnetExePath <- DotNetCli.InstallDotNetSDK dotnetcliVersion
+)
+
+
 Target "Clean" (fun _ -> !!"./**/bin/" ++ "./**/obj/" |> CleanDirs)
 
 open AssemblyInfoFile
@@ -52,48 +60,44 @@ Target "ProjectVersion" (fun _ ->
 let build project framework =
     DotNetCli.Build (fun p ->
     { p with
+        ToolPath = dotnetExePath
         Configuration = configuration
         Framework = framework
         Project = project
     })
 
+let run project =
+    DotNetCli.RunCommand (fun p ->
+    { p with
+        ToolPath = dotnetExePath
+        WorkingDir = project
+    })
+
 Target "BuildTest" (fun _ ->
-    build "Expecto.Tests/Expecto.Tests.fsproj" "netcoreapp1.1"
-    build "Expecto.Tests/Expecto.Tests.fsproj" "netcoreapp2.0"
-    build "Expecto.Tests/Expecto.Tests.fsproj" "net461"
-    build "Expecto.Tests.CSharp/Expecto.Tests.CSharp.csproj" "netcoreapp1.1"
-    build "Expecto.Tests.CSharp/Expecto.Tests.CSharp.csproj" "netcoreapp2.0"
-    build "Expecto.Tests.CSharp/Expecto.Tests.CSharp.csproj" "net461"
-    build "Expecto.Focused.Tests/Expecto.Focused.Tests.fsproj" "netcoreapp1.1"
-    build "Expecto.Focused.Tests/Expecto.Focused.Tests.fsproj" "netcoreapp2.0"
-    build "Expecto.Focused.Tests/Expecto.Focused.Tests.fsproj" "net461"
+    build "Expecto/Expecto.fsproj" ""
+    build "Expecto.FsCheck/Expecto.FsCheck.fsproj" ""
+    build "Expecto.Tests/Expecto.Tests.fsproj" ""
+    build "Expecto.Tests.CSharp/Expecto.Tests.CSharp.csproj" ""
+    build "Expecto.Focused.Tests/Expecto.Focused.Tests.fsproj" ""
 )
 
 Target "BuildBenchmarkDotNet" (fun _ ->
-    build "Expecto.BenchmarkDotNet/Expecto.BenchmarkDotNet.fsproj" "netcoreapp2.0"
-    build "Expecto.BenchmarkDotNet/Expecto.BenchmarkDotNet.fsproj" "net461"
-    build "Expecto.BenchmarkDotNet/Expecto.BenchmarkDotNet.fsproj" "netcoreapp1.1"
+    build "Expecto.BenchmarkDotNet/Expecto.BenchmarkDotNet.fsproj" ""
 )
 
 Target "RunTest" (fun _ ->
-    DotNetCli.RunCommand id ("Expecto.Tests/bin/"+configuration+"/netcoreapp2.0/Expecto.Tests.dll --summary")
+    run "Expecto.Tests" "run --framework netcoreapp2.0 --summary"
     Shell.Exec ("Expecto.Tests/bin/"+configuration+"/net461/Expecto.Tests.exe","--summary")
     |> fun r -> if r<>0 then failwith "Expecto.Tests.exe failed"
-    if EnvironmentHelper.isWindows then
-        DotNetCli.RunCommand id ("Expecto.Tests/bin/"+configuration+"/netcoreapp1.1/Expecto.Tests.dll --summary")
 
-    DotNetCli.RunCommand id ("Expecto.Tests.CSharp/bin/"+configuration+"/netcoreapp2.0/Expecto.Tests.CSharp.dll --summary")
+    run "Expecto.Tests.CSharp" "run --framework netcoreapp2.0 --summary"
     Shell.Exec ("Expecto.Tests.CSharp/bin/"+configuration+"/net461/Expecto.Tests.CSharp.exe","--summary")
     |> fun r -> if r<>0 then failwith "Expecto.Tests.CSharp.exe failed"
-    if EnvironmentHelper.isWindows then
-        DotNetCli.RunCommand id ("Expecto.Tests.CSharp/bin/"+configuration+"/netcoreapp1.1/Expecto.Tests.CSharp.dll --summary")
-
+    
     DotNetCli.RunCommand id ("Expecto.Focused.Tests/bin/"+configuration+"/netcoreapp2.0/Expecto.Focused.Tests.dll --summary")
+    run "Expecto.Focused.Tests" "run --framework netcoreapp2.0 --summary"
     Shell.Exec ("Expecto.Focused.Tests/bin/"+configuration+"/net461/Expecto.Focused.Tests.exe","--summary")
     |> fun r -> if r<>0 then failwith "Expecto.Focused.Tests.exe failed"
-    if EnvironmentHelper.isWindows then
-        DotNetCli.RunCommand id ("Expecto.Focused.Tests/bin/"+configuration+"/netcoreapp1.1/Expecto.Focused.Tests.dll --summary")
-
 )
 
 Target "Pack" (fun _ ->
@@ -154,6 +158,7 @@ Target "Release" (fun _ ->
 Target "All" ignore
 
 "Clean"
+==> "InstallDotNetCore"
 ==> "AssemblyInfo"
 ==> "PaketFiles"
 ==> "ProjectVersion"
