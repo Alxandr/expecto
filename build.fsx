@@ -1,4 +1,4 @@
-#r @"packages/build/FAKE/tools/FakeLib.dll"
+#r @"packages/FAKE/tools/FakeLib.dll"
 
 open System
 open Fake
@@ -128,7 +128,7 @@ Target "Pack" (fun _ ->
 
 Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
 
-#load "paket-files/build/fsharp/FAKE/modules/Octokit/Octokit.fsx"
+#load "paket-files/fsharp/FAKE/modules/Octokit/Octokit.fsx"
 Target "Release" (fun _ ->
     let gitOwner = "haf"
     let gitName = "expecto"
